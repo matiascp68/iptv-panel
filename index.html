@@ -415,6 +415,8 @@
 
     <!-- CANALES -->
     <div class="panel" id="panel-canales">
+<div style="margin-bottom:16px;"><video id="videoPlayer" controls autoplay style="width:100%;max-height:420px;background:black;border-radius:10px;"></video></div>
+
       <div class="card" style="margin-bottom:16px;"><div class="card-body" style="padding:14px 20px;"><div class="search-bar"><span>🔍</span><input type="text" placeholder="Buscar canal, película o serie..." oninput="filterChannels(this.value)" /></div></div></div>
       <div class="card">
         <div class="card-header">📺 Todos los Canales
@@ -495,12 +497,12 @@ http://servidor.com/series/s01e01.mp4</div>
         <div class="card">
           <div class="card-header">🏷️ Etiquetas</div>
           <div class="card-body">
-            <table><thead><tr><th>Etiqueta</th><th>Descripción</th></tr></thead><tbody>
-              <tr><td><code style="color:var(--accent)">tvg-name</code></td><td style="color:var(--muted)">Nombre del canal</td></tr>
-              <tr><td><code style="color:var(--accent)">group-title</code></td><td style="color:var(--muted)">Categoría/Grupo</td></tr>
-              <tr><td><code style="color:var(--accent)">tvg-logo</code></td><td style="color:var(--muted)">URL del logo</td></tr>
-              <tr><td><code style="color:var(--accent)">tvg-language</code></td><td style="color:var(--muted)">Idioma (Spanish)</td></tr>
-              <tr><td><code style="color:var(--accent)">tvg-country</code></td><td style="color:var(--muted)">País (CL)</td></tr>
+            <table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Etiqueta</th><th>Descripción</th></tr></thead><tbody>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-name</code></td><td style="color:var(--muted)">Nombre del canal</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">group-title</code></td><td style="color:var(--muted)">Categoría/Grupo</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-logo</code></td><td style="color:var(--muted)">URL del logo</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-language</code></td><td style="color:var(--muted)">Idioma (Spanish)</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-country</code></td><td style="color:var(--muted)">País (CL)</td></tr>
             </tbody></table>
           </div>
         </div>
@@ -931,13 +933,13 @@ window.renderDashboard = () => {
   if (!window.state.channels.length) { lastCh.innerHTML = '<div class="empty-state" style="padding:20px;"><div class="empty-sub">Importa una lista M3U</div></div>'; }
   else {
     const sl = window.state.channels.slice(-6).reverse();
-    lastCh.innerHTML = `<table><thead><tr><th>Canal</th><th>Tipo</th><th>Lista</th></tr></thead><tbody>${sl.map(ch=>`<tr><td>${escHtml(ch.name)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td></tr>`).join('')}</tbody></table>`;
+    lastCh.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Canal</th><th>Tipo</th><th>Lista</th></tr></thead><tbody>${sl.map(ch=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td>${escHtml(ch.name)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td></tr>`).join('')}</tbody></table>`;
   }
   const lastUs = document.getElementById('last-us');
   if (!window.state.users.length) { lastUs.innerHTML = '<div class="empty-state" style="padding:20px;"><div class="empty-sub">Agrega usuarios</div></div>'; }
   else {
     const sl = window.state.users.slice(-5).reverse();
-    lastUs.innerHTML = `<table><thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead><tbody>${sl.map(u=>`<tr><td>${escHtml(u.fullname)}</td><td>${u.role==='admin'?'<span class="status-badge status-admin">👑 Admin</span>':'<span style="color:var(--muted);font-size:10px;">👁️</span>'}</td><td>${u.status==='active'?'<span class="status-badge status-active"><span class="dot-s"></span>Activo</span>':'<span class="status-badge status-inactive">Inactivo</span>'}</td></tr>`).join('')}</tbody></table>`;
+    lastUs.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead><tbody>${sl.map(u=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td>${escHtml(u.fullname)}</td><td>${u.role==='admin'?'<span class="status-badge status-admin">👑 Admin</span>':'<span style="color:var(--muted);font-size:10px;">👁️</span>'}</td><td>${u.status==='active'?'<span class="status-badge status-active"><span class="dot-s"></span>Activo</span>':'<span class="status-badge status-inactive">Inactivo</span>'}</td></tr>`).join('')}</tbody></table>`;
   }
 };
 
@@ -995,7 +997,7 @@ window.renderChannels = () => {
   const div = document.getElementById('channels-table');
   const filtered = window.channelFilter ? window.state.channels.filter(c=>c.name.toLowerCase().includes(window.channelFilter)||c.group.toLowerCase().includes(window.channelFilter)) : window.state.channels;
   if (!filtered.length) { div.innerHTML = `<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">${!window.state.channels.length?'Sin canales aún':'Sin resultados'}</div></div>`; return; }
-  div.innerHTML = `<table><thead><tr><th>#</th><th>Nombre</th><th>Grupo</th><th>Tipo</th><th>Lista</th><th>URL</th></tr></thead><tbody>${filtered.slice(0,200).map((ch,i)=>`<tr><td style="color:var(--muted);">${i+1}</td><td>${escHtml(ch.name)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.group)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-size:10px;" title="${escHtml(ch.url)}">${escHtml(ch.url)}</td></tr>`).join('')}</tbody></table>${filtered.length>200?`<div style="padding:10px 16px;font-size:10px;color:var(--muted);">Mostrando 200 de ${filtered.length}</div>`:''}`;
+  div.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>#</th><th>Nombre</th><th>Grupo</th><th>Tipo</th><th>Lista</th><th>URL</th></tr></thead><tbody>${filtered.slice(0,200).map((ch,i)=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td style="color:var(--muted);">${i+1}</td><td>${escHtml(ch.name)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.group)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-size:10px;" title="${escHtml(ch.url)}">${escHtml(ch.url)}</td></tr>`).join('')}</tbody></table>${filtered.length>200?`<div style="padding:10px 16px;font-size:10px;color:var(--muted);">Mostrando 200 de ${filtered.length}</div>`:''}`;
 };
 
 window.exportChannels = () => {
@@ -1085,7 +1087,7 @@ window.toggleUserStatus = async (id) => {
 window.renderUsers = () => {
   const div = document.getElementById('users-table');
   if (!window.state.users.length) { div.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Sin usuarios</div><br><button class="btn btn-primary" onclick="openAddUser()">➕ Añadir</button></div>`; return; }
-  div.innerHTML = `<table><thead><tr><th>Usuario</th><th>Alias</th><th>Rol</th><th>Listas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${window.state.users.map(u=>`<tr>
+  div.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Usuario</th><th>Alias</th><th>Rol</th><th>Listas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${window.state.users.map(u=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;">
     <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:26px;height:26px;font-size:10px;">${u.fullname.charAt(0).toUpperCase()}</div><div><div style="font-size:11px;">${escHtml(u.fullname)}</div>${u.email?`<div style="font-size:9px;color:var(--muted);">${escHtml(u.email)}</div>`:''}</div></div></td>
     <td style="color:var(--muted);font-size:10px;">@${escHtml(u.username)}</td>
     <td>${u.role==='admin'?'<span class="status-badge status-admin">👑 Admin</span>':'<span style="color:var(--muted);font-size:10px;">👁️ Viewer</span>'}</td>
@@ -1149,6 +1151,31 @@ function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+window.playChannel = function(url) {
+  const video = document.getElementById('videoPlayer');
+  let streamUrl = url.replace('/live/', '/hls/').replace('.ts', '.m3u8');
+
+  if (Hls.isSupported()) {
+    if (window.hls) window.hls.destroy();
+    const hls = new Hls();
+    window.hls = hls;
+    hls.loadSource(streamUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play(); });
+    hls.on(Hls.Events.ERROR, function () {
+      video.src = url;
+      video.play();
+    });
+  } else {
+    video.src = streamUrl;
+    video.play();
+  }
+};
 </script>
 </body>
 </html>
