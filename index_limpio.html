@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamAdmin Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080c14;--surface:#0f1520;--surface2:#161e2e;--border:#1e2d45;
+    --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--danger:#ef4444;
+    --warn:#f59e0b;--text:#e2e8f0;--muted:#64748b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;display:flex;overflow:hidden;}
+
+  /* ── FIREBASE CONFIG SCREEN ── */
+  #firebase-setup{
+    position:fixed;inset:0;background:var(--bg);z-index:999;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .setup-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    width:100%;max-width:560px;overflow:hidden;
+    animation:fadeUp 0.4s ease;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .setup-header{
+    padding:28px 32px;background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(124,58,237,0.08));
+    border-bottom:1px solid var(--border);
+  }
+  .setup-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent);margin-bottom:6px;}
+  .setup-sub{font-size:11px;color:var(--muted);line-height:1.6;}
+  .setup-body{padding:28px 32px;}
+  .setup-step{
+    display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;
+    padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);
+    font-size:11px;line-height:1.7;color:var(--muted);
+  }
+  .step-num{
+    background:var(--accent);color:#000;border-radius:50%;
+    width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px;
+  }
+  .step-num.purple{background:var(--accent2);color:#fff;}
+  .step-num.green{background:var(--accent3);color:#000;}
+  code{
+    background:rgba(0,212,255,0.1);color:var(--accent);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+  }
+  .firebase-form{margin-top:20px;}
+  .ff-group{margin-bottom:14px;}
+  .ff-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block;}
+  .ff-input{
+    width:100%;background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;padding:10px 12px;color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;
+    transition:border-color 0.2s;
+  }
+  .ff-input:focus{border-color:var(--accent);}
+  .ff-paste-area{
+    width:100%;background:#010409;border:1px solid var(--border);
+    border-radius:6px;padding:12px;color:#7dd3fc;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    min-height:90px;resize:vertical;outline:none;line-height:1.7;
+  }
+  .ff-paste-area:focus{border-color:var(--accent);}
+  .ff-hint{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.5;}
+  .btn-setup{
+    width:100%;padding:12px;background:var(--accent);color:#000;
+    border:none;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;
+    font-weight:600;font-size:13px;transition:all 0.2s;margin-top:8px;
+  }
+  .btn-setup:hover{background:#00b8d9;transform:translateY(-1px);}
+  .btn-demo{
+    width:100%;padding:10px;background:transparent;color:var(--muted);
+    border:1px solid var(--border);border-radius:8px;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.2s;margin-top:8px;
+  }
+  .btn-demo:hover{color:var(--text);border-color:var(--muted);}
+  .tabs{display:flex;gap:8px;margin-bottom:20px;}
+  .tab{
+    flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);
+    background:transparent;color:var(--muted);cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:11px;transition:all 0.2s;
+  }
+  .tab.active{background:rgba(0,212,255,0.1);color:var(--accent);border-color:var(--accent);}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen{
+    position:fixed;inset:0;background:var(--bg);z-index:998;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  #login-screen.show{display:flex;}
+  .login-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    width:100%;max-width:380px;overflow:hidden;animation:fadeUp 0.3s ease;
+  }
+  .login-header{
+    padding:28px;text-align:center;
+    background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06));
+    border-bottom:1px solid var(--border);
+  }
+  .login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--accent);}
+  .login-sub{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+  .login-body{padding:28px;}
+  .login-error{
+    background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+    color:#f87171;border-radius:6px;padding:10px 12px;font-size:11px;
+    margin-bottom:14px;display:none;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;}
+  .logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .logo-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--accent);}
+  .logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+  .sync-dot{display:inline-flex;align-items:center;gap:5px;font-size:9px;margin-top:8px;color:var(--accent3);}
+  .sync-dot .dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .nav-section{padding:8px 12px;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:8px 0 4px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:12px;color:var(--muted);transition:all 0.2s;border-left:2px solid transparent;}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+  .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,255,0.05);}
+  .nav-item .icon{font-size:15px;width:18px;text-align:center;}
+  .nav-badge{margin-left:auto;background:var(--accent2);color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);}
+  .user-chip{display:flex;align-items:center;gap:10px;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
+  .user-info{flex:1;overflow:hidden;}
+  .user-name{font-size:11px;font-weight:600;}
+  .user-role{font-size:9px;color:var(--accent);}
+
+  /* ── MAIN ── */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px;}
+  .page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;flex:1;}
+  .btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--accent);color:#000;}
+  .btn-primary:hover{background:#00b8d9;transform:translateY(-1px);}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-sm{padding:5px 10px;font-size:10px;}
+  .content{flex:1;overflow-y:auto;padding:28px;}
+  .content::-webkit-scrollbar{width:4px;}
+  .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .panel{display:none;} .panel.active{display:block;}
+
+  /* ── CARDS & STATS ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .stat-card.blue::before{background:var(--accent);}
+  .stat-card.purple::before{background:var(--accent2);}
+  .stat-card.green::before{background:var(--accent3);}
+  .stat-card.orange::before{background:var(--warn);}
+  .stat-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+  .stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+  .stat-card.blue .stat-value{color:var(--accent);}
+  .stat-card.purple .stat-value{color:#a78bfa;}
+  .stat-card.green .stat-value{color:var(--accent3);}
+  .stat-card.orange .stat-value{color:var(--warn);}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+  .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;}
+  .card-body{padding:20px;}
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  th{text-align:left;padding:10px 14px;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--surface2);}
+  td{padding:12px 14px;border-bottom:1px solid rgba(30,45,69,0.5);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:600;}
+  .status-active{background:rgba(16,185,129,0.15);color:var(--accent3);border:1px solid rgba(16,185,129,0.3);}
+  .status-inactive{background:rgba(100,116,139,0.15);color:var(--muted);border:1px solid rgba(100,116,139,0.2);}
+  .status-admin{background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);}
+  .dot-s{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  input,select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;transition:border-color 0.2s;outline:none;width:100%;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:120px;}
+  select option{background:var(--surface2);}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,0.85);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:fadeUp 0.25s ease;}
+  .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;}
+  .modal-close{width:28px;height:28px;border-radius:6px;border:none;background:var(--surface2);color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .modal-close:hover{color:var(--text);}
+  .modal-body{padding:24px;}
+  .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+  .drop-zone{border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all 0.25s;position:relative;}
+  .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(0,212,255,0.03);}
+  .drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .ch-type{font-size:9px;padding:2px 6px;border-radius:10px;}
+  .ch-live{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);}
+  .ch-vod{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);}
+  .ch-series{background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.2);}
+  .alert{padding:12px 16px;border-radius:8px;font-size:11px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
+  .alert-info{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:#7dd3fc;}
+  .alert-success{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:var(--accent3);}
+  .alert-warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:var(--warn);}
+  .toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999;}
+  .toast{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:11px;display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease;min-width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  .toast.success{border-left:3px solid var(--accent3);}
+  .toast.error{border-left:3px solid var(--danger);}
+  .toast.info{border-left:3px solid var(--accent);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .search-bar{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;gap:8px;}
+  .search-bar input{background:transparent;border:none;padding:0;font-size:12px;flex:1;}
+  .search-bar:focus-within{border-color:var(--accent);}
+  .inline-actions{display:flex;gap:6px;}
+  .playlist-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:border-color 0.2s;}
+  .playlist-item:hover{border-color:var(--accent);}
+  .playlist-info{flex:1;}
+  .playlist-name{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;margin-bottom:3px;}
+  .playlist-meta{font-size:10px;color:var(--muted);}
+  .playlist-stats{display:flex;gap:16px;margin-top:6px;}
+  .playlist-stat{font-size:10px;}
+  .playlist-stat span{color:var(--accent);font-weight:600;}
+  .empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
+  .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.4;}
+  .empty-title{font-family:'Syne',sans-serif;font-size:16px;color:var(--text);margin-bottom:8px;}
+  .empty-sub{font-size:12px;line-height:1.6;}
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;}
+  .tag-blue{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);}
+  .tag-purple{background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.2);}
+  .tag-green{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.2);}
+  .help-text{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .loading-spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .m3u-code{background:#010409;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:10px;color:#7dd3fc;overflow-x:auto;white-space:pre;line-height:1.7;}
+  @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     FIREBASE SETUP SCREEN
+═════════════════════════════════════ -->
+<div id="firebase-setup">
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="setup-logo">⚡ StreamAdmin Pro</div>
+      <div class="setup-sub">Conecta tu base de datos Firebase para sincronizar entre todos tus dispositivos (PC, iPhone, iPad, etc.)</div>
+    </div>
+    <div class="setup-body">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('tab-steps')">📖 Instrucciones</button>
+        <button class="tab" onclick="switchTab('tab-config')">⚙️ Configurar Firebase</button>
+      </div>
+
+      <div class="tab-content active" id="tab-steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div>Ve a <strong style="color:var(--text)">console.firebase.google.com</strong> e inicia sesión con tu cuenta de Google. Es completamente <strong style="color:var(--accent3)">gratis</strong>.</div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div>Haz clic en <strong style="color:var(--text)">"Crear un proyecto"</strong>, ponle cualquier nombre (ej: <code>mi-iptv</code>) y sigue los pasos. Desactiva Google Analytics si lo pide.</div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num purple">3</div>
+          <div>En el panel del proyecto ve a <strong style="color:var(--text)">Firestore Database → Crear base de datos</strong>. Elige <code>Modo de prueba</code> y la región más cercana (ej: <code>us-east1</code>).</div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num purple">4</div>
+          <div>Ve a <strong style="color:var(--text)">Configuración del proyecto ⚙️ → General → Tus apps</strong>. Haz clic en el icono <code>&lt;/&gt;</code> (Web), registra la app con cualquier nombre y copia el objeto <code>firebaseConfig</code>.</div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num green">5</div>
+          <div>Pega ese código en la pestaña <strong style="color:var(--text)">"Configurar Firebase"</strong> y haz clic en Conectar. ¡Listo!</div>
+        </div>
+        <button class="btn-setup" onclick="switchTab('tab-config')">Ir a Configurar →</button>
+        <button class="btn-demo" onclick="useDemoMode()">⚡ Usar sin Firebase (solo este dispositivo)</button>
+      </div>
+
+      <div class="tab-content" id="tab-config">
+        <div class="alert-info alert" style="margin-bottom:16px;">
+          💡 Pega el bloque completo <code>firebaseConfig = { ... }</code> que copiaste de Firebase Console
+        </div>
+        <div class="ff-group">
+          <label class="ff-label">Pegar configuración Firebase (método rápido)</label>
+          <textarea class="ff-paste-area" id="fb-paste" placeholder='const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "mi-iptv.firebaseapp.com",
+  projectId: "mi-iptv",
+  storageBucket: "mi-iptv.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+};'></textarea>
+          <div class="ff-hint">O completa los campos uno por uno:</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div class="ff-group">
+            <label class="ff-label">API Key</label>
+            <input class="ff-input" id="fb-apiKey" placeholder="AIzaSy..." />
+          </div>
+          <div class="ff-group">
+            <label class="ff-label">Project ID</label>
+            <input class="ff-input" id="fb-projectId" placeholder="mi-iptv" />
+          </div>
+          <div class="ff-group">
+            <label class="ff-label">Auth Domain</label>
+            <input class="ff-input" id="fb-authDomain" placeholder="mi-iptv.firebaseapp.com" />
+          </div>
+          <div class="ff-group">
+            <label class="ff-label">App ID</label>
+            <input class="ff-input" id="fb-appId" placeholder="1:123:web:abc" />
+          </div>
+        </div>
+        <div id="fb-connect-error" style="color:#f87171;font-size:11px;margin-bottom:10px;display:none;"></div>
+        <button class="btn-setup" onclick="connectFirebase()" id="btn-connect">
+          🔥 Conectar Firebase
+        </button>
+        <button class="btn-demo" onclick="useDemoMode()">⚡ Usar sin Firebase (solo este dispositivo)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     LOGIN SCREEN
+═════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">⚡ StreamAdmin</div>
+      <div class="login-sub">PANEL DE CONTROL IPTV</div>
+    </div>
+    <div class="login-body">
+      <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+      <div class="ff-group" style="margin-bottom:14px;">
+        <label class="ff-label">Usuario</label>
+        <input class="ff-input" type="text" id="login-user" placeholder="admin" />
+      </div>
+      <div class="ff-group" style="margin-bottom:20px;">
+        <label class="ff-label">Contraseña</label>
+        <input class="ff-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <button class="btn-setup" onclick="doLogin()">Iniciar Sesión →</button>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px;">
+        Primera vez: <code style="color:var(--accent)">admin</code> / <code style="color:var(--accent)">admin123</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MAIN APP
+═════════════════════════════════════ -->
+<nav class="sidebar" id="app-sidebar" style="display:none;">
+  <div class="logo">
+    <div class="logo-mark">⚡ StreamAdmin</div>
+    <div class="logo-sub">Panel IPTV</div>
+    <div class="sync-dot" id="sync-status"><span class="dot"></span> <span id="sync-label">Sincronizado</span></div>
+  </div>
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="showPanel('dashboard')"><span class="icon">📊</span> Dashboard</div>
+  <div class="nav-item" onclick="showPanel('listas')"><span class="icon">📋</span> Listas M3U <span class="nav-badge" id="badge-listas">0</span></div>
+  <div class="nav-item" onclick="showPanel('canales')"><span class="icon">📺</span> Canales <span class="nav-badge" id="badge-canales" style="background:var(--accent);color:#000;">0</span></div>
+  <div class="nav-section">Gestión</div>
+  <div class="nav-item" onclick="showPanel('usuarios')"><span class="icon">👥</span> Usuarios <span class="nav-badge" id="badge-usuarios">0</span></div>
+  <div class="nav-item" onclick="showPanel('permisos')"><span class="icon">🔐</span> Permisos</div>
+  <div class="nav-section">Herramientas</div>
+  <div class="nav-item" onclick="showPanel('importar')"><span class="icon">⬆️</span> Importar M3U</div>
+  <div class="nav-item" onclick="showPanel('ayuda')"><span class="icon">❓</span> Guía M3U</div>
+  <div class="nav-item" onclick="showPanel('github')"><span class="icon">🐙</span> Subir a GitHub</div>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar" id="sb-avatar">AD</div>
+      <div class="user-info">
+        <div class="user-name" id="sb-name">Administrador</div>
+        <div class="user-role">● EN LÍNEA</div>
+      </div>
+    </div>
+    <button onclick="doLogout()" style="width:100%;margin-top:12px;padding:7px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🚪 Cerrar Sesión</button>
+  </div>
+</nav>
+
+<div class="main" id="app-main" style="display:none;">
+  <div class="topbar">
+    <div class="page-title" id="page-title">📊 Dashboard</div>
+    <div id="topbar-actions"></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-label">Canales Totales</div><div class="stat-value" id="stat-canales">0</div><div class="stat-sub">En todas las listas</div></div>
+        <div class="stat-card purple"><div class="stat-label">Usuarios Activos</div><div class="stat-value" id="stat-usuarios">0</div><div class="stat-sub">Con acceso habilitado</div></div>
+        <div class="stat-card green"><div class="stat-label">Listas M3U</div><div class="stat-value" id="stat-listas">0</div><div class="stat-sub">Importadas y activas</div></div>
+        <div class="stat-card orange"><div class="stat-label">VOD / Series</div><div class="stat-value" id="stat-vod">0</div><div class="stat-sub">Contenido on demand</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card"><div class="card-header">📺 Últimos Canales</div><div id="last-ch"></div></div>
+        <div class="card"><div class="card-header">👥 Últimos Usuarios</div><div id="last-us"></div></div>
+      </div>
+      <div class="card"><div class="card-header">⚡ Acciones Rápidas</div>
+        <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="showPanel('importar')">⬆️ Importar Lista M3U</button>
+          <button class="btn btn-secondary" onclick="openAddUser()">➕ Añadir Usuario</button>
+          <button class="btn btn-secondary" onclick="showPanel('listas')">📋 Ver Mis Listas</button>
+          <button class="btn btn-secondary" onclick="showPanel('github')">🐙 Guía GitHub Pages</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTAS -->
+    <div class="panel" id="panel-listas"><div id="listas-container"></div></div>
+
+    <!-- CANALES -->
+    <div class="panel" id="panel-canales">
+
+  <div style="margin-bottom:16px;">
+    <video id="videoPlayer" controls autoplay style="width:100%;max-height:420px;background:black;border-radius:10px;"></video>
+  </div>
+
+      <div class="card" style="margin-bottom:16px;"><div class="card-body" style="padding:14px 20px;"><div class="search-bar"><span>🔍</span><input type="text" placeholder="Buscar canal, película o serie..." oninput="filterChannels(this.value)" /></div></div></div>
+      <div class="card">
+        <div class="card-header">📺 Todos los Canales
+          <div style="display:flex;gap:8px;"><span class="tag tag-blue" id="count-live">0 EN VIVO</span><span class="tag tag-purple" id="count-vod">0 VOD</span><span class="tag tag-green" id="count-series">0 SERIES</span></div>
+        </div>
+        <div id="channels-table"></div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="panel" id="panel-usuarios">
+      <div class="card"><div class="card-header">👥 Gestión de Usuarios <button class="btn btn-primary btn-sm" onclick="openAddUser()">➕ Nuevo Usuario</button></div><div id="users-table"></div></div>
+    </div>
+
+    <!-- PERMISOS -->
+    <div class="panel" id="panel-permisos">
+      <div class="alert alert-info">ℹ️ Controla qué listas M3U puede ver cada usuario.</div>
+      <div id="permisos-container"></div>
+    </div>
+
+    <!-- IMPORTAR -->
+    <div class="panel" id="panel-importar">
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-header">⬆️ Importar Archivo .M3U</div>
+            <div class="card-body">
+              <div class="drop-zone" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+                <input type="file" accept=".m3u,.m3u8,.txt" onchange="handleFileInput(event)" />
+                <div style="font-size:36px;margin-bottom:12px;">📁</div>
+                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;">Arrastra tu archivo aquí</div>
+                <div style="font-size:11px;color:var(--muted);">o haz clic para seleccionar<br><br><strong style="color:var(--accent);">.m3u · .m3u8 · .txt</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">📝 Pegar desde Bloc de Notas</div>
+            <div class="card-body">
+              <div class="form-group" style="margin-bottom:12px;"><label>Nombre de la Lista</label><input type="text" id="paste-name" placeholder="Mi Lista Principal" /></div>
+              <div class="form-group" style="margin-bottom:12px;"><label>Contenido M3U</label><textarea id="paste-content" placeholder="#EXTM3U&#10;#EXTINF:-1 tvg-name=&quot;Canal 1&quot; group-title=&quot;Deportes&quot;,Canal 1&#10;http://stream.ejemplo.com/canal1"></textarea><div class="help-text">📌 Pega el contenido de tu archivo m3u aquí</div></div>
+              <button class="btn btn-primary" style="width:100%;" onclick="importFromPaste()">⚡ Importar Lista</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card"><div class="card-header">👁️ Vista Previa</div><div id="import-preview"><div class="empty-state"><div class="empty-icon">👁️</div><div class="empty-title">Sin vista previa</div><div class="empty-sub">Selecciona o pega una lista M3U</div></div></div></div>
+          <div class="card">
+            <div class="card-header">🔗 Importar desde URL</div>
+            <div class="card-body">
+              <div class="form-group" style="margin-bottom:12px;"><label>Nombre</label><input type="text" id="url-name" placeholder="Lista desde URL" /></div>
+              <div class="form-group" style="margin-bottom:12px;"><label>URL M3U</label><input type="url" id="url-input" placeholder="http://servidor.com/lista.m3u" /><div class="help-text">⚠️ Requiere que el servidor permita CORS</div></div>
+              <button class="btn btn-secondary" style="width:100%;" onclick="importFromUrl()">🔗 Cargar desde URL</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AYUDA M3U -->
+    <div class="panel" id="panel-ayuda">
+      <div class="alert alert-info">📖 Guía para crear listas M3U desde el Bloc de Notas de Windows</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">📝 Estructura Básica</div>
+          <div class="card-body">
+            <div class="m3u-code">#EXTM3U
+
+#EXTINF:-1 tvg-name="Canal 1" group-title="Canales",Canal 1
+http://servidor.com/stream/canal1
+
+#EXTINF:-1 tvg-name="Película" group-title="VOD",Película
+http://servidor.com/vod/pelicula.mkv
+
+#EXTINF:-1 tvg-name="Serie S01E01" group-title="Series",Serie S01E01
+http://servidor.com/series/s01e01.mp4</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">🏷️ Etiquetas</div>
+          <div class="card-body">
+            <table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Etiqueta</th><th>Descripción</th></tr></thead><tbody>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-name</code></td><td style="color:var(--muted)">Nombre del canal</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">group-title</code></td><td style="color:var(--muted)">Categoría/Grupo</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-logo</code></td><td style="color:var(--muted)">URL del logo</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-language</code></td><td style="color:var(--muted)">Idioma (Spanish)</td></tr>
+              <tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td><code style="color:var(--accent)">tvg-country</code></td><td style="color:var(--muted)">País (CL)</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">🖥️ Pasos para crear desde Bloc de Notas</div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:11px;">1</div><div>Abre el <strong>Bloc de Notas</strong> de Windows</div></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:11px;">2</div><div>Primera línea: <code style="color:var(--accent);">#EXTM3U</code></div></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:11px;">3</div><div>Por cada canal: una línea <code style="color:var(--accent);">#EXTINF</code> + la URL del stream</div></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:11px;">4</div><div>Guarda como <code style="color:var(--accent3);">milista.m3u</code> (Guardar como → poner extensión .m3u)</div></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:12px;"><div style="background:var(--accent3);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:11px;">5</div><div>Importa el archivo en la sección <strong>Importar M3U</strong></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GITHUB GUIDE -->
+    <div class="panel" id="panel-github">
+      <div class="alert alert-success">🐙 Sigue estos pasos para tener tu panel disponible 24/7 gratis desde cualquier dispositivo</div>
+
+      <div class="card">
+        <div class="card-header">📦 Paso 1 — Crear cuenta en GitHub</div>
+        <div class="card-body" style="font-size:12px;line-height:1.8;color:var(--muted);">
+          <p>Ve a <strong style="color:var(--accent)">github.com</strong> → haz clic en <strong style="color:var(--text)">Sign up</strong> → crea tu cuenta gratis con tu email.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">📁 Paso 2 — Crear repositorio</div>
+        <div class="card-body" style="font-size:12px;line-height:1.8;color:var(--muted);">
+          <p>1. Haz clic en el botón verde <strong style="color:var(--text)">New</strong> o el ícono <code style="color:var(--accent)">+</code> arriba a la derecha</p>
+          <p>2. Nombre del repositorio: <code style="color:var(--accent)">iptv-panel</code> (o el que quieras)</p>
+          <p>3. Selecciona <strong style="color:var(--text)">Public</strong></p>
+          <p>4. Haz clic en <strong style="color:var(--accent3)">Create repository</strong></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">⬆️ Paso 3 — Subir el archivo</div>
+        <div class="card-body" style="font-size:12px;line-height:1.8;color:var(--muted);">
+          <p>1. En tu repositorio vacío, haz clic en <strong style="color:var(--text)">"uploading an existing file"</strong></p>
+          <p>2. <strong style="color:var(--text)">Renombra el archivo</strong> de <code style="color:var(--accent)">iptv-panel.html</code> a <code style="color:var(--accent3)">index.html</code> antes de subirlo</p>
+          <p>3. Arrastra el archivo <code style="color:var(--accent)">index.html</code> a la zona de carga</p>
+          <p>4. Escribe un mensaje como <code style="color:var(--accent)">primer commit</code> y haz clic en <strong style="color:var(--accent3)">Commit changes</strong></p>
+          <br>
+          <button class="btn btn-primary" onclick="downloadForGithub()">⬇️ Descargar index.html listo para GitHub</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">🌐 Paso 4 — Activar GitHub Pages</div>
+        <div class="card-body" style="font-size:12px;line-height:1.8;color:var(--muted);">
+          <p>1. En tu repositorio ve a <strong style="color:var(--text)">Settings</strong> (pestaña arriba)</p>
+          <p>2. En el menú lateral haz clic en <strong style="color:var(--text)">Pages</strong></p>
+          <p>3. En <strong>Source</strong> selecciona <code style="color:var(--accent)">Deploy from a branch</code></p>
+          <p>4. En <strong>Branch</strong> selecciona <code style="color:var(--accent)">main</code> y carpeta <code style="color:var(--accent)">/(root)</code></p>
+          <p>5. Haz clic en <strong style="color:var(--accent3)">Save</strong></p>
+          <p>6. Espera 1-2 minutos y tu panel estará en:</p>
+          <div class="m3u-code" style="margin-top:10px;">https://TU-USUARIO.github.io/iptv-panel/</div>
+          <p style="margin-top:10px;">¡Abre esa URL desde tu iPhone y funcionará sin encender el PC! 🎉</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">💡 Consejo Final</div>
+        <div class="card-body">
+          <div class="alert alert-warn" style="margin:0;">
+            ⚠️ <strong>Si configuraste Firebase:</strong> los datos se sincronizan automáticamente entre todos tus dispositivos. Si usas el modo sin Firebase, los datos son locales de cada navegador.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-header"><span id="modal-user-title">➕ Nuevo Usuario</span><button class="modal-close" onclick="closeModal('modal-user')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-user-id" />
+      <div class="form-row">
+        <div class="form-group"><label>Nombre Completo</label><input type="text" id="user-fullname" placeholder="Juan Pérez" /></div>
+        <div class="form-group"><label>Usuario / Alias</label><input type="text" id="user-username" placeholder="juanperez" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Contraseña</label><input type="password" id="user-password" placeholder="••••••••" /></div>
+        <div class="form-group"><label>Rol</label><select id="user-role"><option value="viewer">👁️ Espectador</option><option value="admin">👑 Administrador</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Estado</label><select id="user-status"><option value="active">✅ Activo</option><option value="inactive">⛔ Inactivo</option></select></div>
+        <div class="form-group"><label>Email (opcional)</label><input type="email" id="user-email" placeholder="juan@ejemplo.com" /></div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Listas con Acceso</label>
+        <div id="user-lists-checkboxes" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;min-height:50px;"></div>
+        <div class="help-text">Selecciona a qué listas M3U tendrá acceso este usuario</div>
+      </div>
+      <div class="form-group"><label>Notas</label><input type="text" id="user-notes" placeholder="Notas adicionales..." /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()">💾 Guardar Usuario</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── STATE ──────────────────────────────
+window.DB = null;
+window.firebaseMode = false;
+window.state = { users:[], playlists:[], channels:[], currentUser:null };
+window.channelFilter = '';
+
+// ── TAB SWITCH ────────────────────────
+window.switchTab = (id) => {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab')[id === 'tab-steps' ? 0 : 1].classList.add('active');
+};
+
+// ── PARSE PASTE CONFIG ────────────────
+function parsePastedConfig(text) {
+  const extract = (key) => {
+    const m = text.match(new RegExp(key + `\\s*:\\s*["']([^"']+)["']`));
+    return m ? m[1] : '';
+  };
+  return {
+    apiKey: extract('apiKey'),
+    authDomain: extract('authDomain'),
+    projectId: extract('projectId'),
+    storageBucket: extract('storageBucket'),
+    messagingSenderId: extract('messagingSenderId'),
+    appId: extract('appId')
+  };
+}
+
+// ── CONNECT FIREBASE ──────────────────
+window.connectFirebase = async () => {
+  const btn = document.getElementById('btn-connect');
+  const errEl = document.getElementById('fb-connect-error');
+  errEl.style.display = 'none';
+
+  let cfg = {};
+  const pasted = document.getElementById('fb-paste').value.trim();
+  if (pasted) {
+    cfg = parsePastedConfig(pasted);
+  } else {
+    cfg.apiKey = document.getElementById('fb-apiKey').value.trim();
+    cfg.projectId = document.getElementById('fb-projectId').value.trim();
+    cfg.authDomain = document.getElementById('fb-authDomain').value.trim();
+    cfg.appId = document.getElementById('fb-appId').value.trim();
+  }
+
+  if (!cfg.apiKey || !cfg.projectId) {
+    errEl.textContent = '❌ Faltan datos: API Key y Project ID son obligatorios.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.innerHTML = '<span class="loading-spinner"></span> Conectando...';
+  btn.disabled = true;
+
+  try {
+    const app = initializeApp(cfg);
+    const db = getFirestore(app);
+    // test connection
+    await getDocs(collection(db, 'users'));
+    window.DB = db;
+    window.firebaseMode = true;
+    localStorage.setItem('fbConfig', JSON.stringify(cfg));
+    document.getElementById('firebase-setup').style.display = 'none';
+    await loadFromFirebase();
+    showLoginScreen();
+    showToast('🔥 Firebase conectado correctamente', 'success');
+  } catch(e) {
+    errEl.textContent = '❌ Error: ' + (e.message || 'Verifica tu configuración y que Firestore esté en modo prueba.');
+    errEl.style.display = 'block';
+    btn.innerHTML = '🔥 Conectar Firebase';
+    btn.disabled = false;
+  }
+};
+
+// ── DEMO MODE ─────────────────────────
+window.useDemoMode = () => {
+  window.firebaseMode = false;
+  loadFromLocalStorage();
+  document.getElementById('firebase-setup').style.display = 'none';
+  document.getElementById('sync-label').textContent = 'Solo local';
+  document.querySelector('.sync-dot').style.color = 'var(--warn)';
+  document.querySelector('.sync-dot .dot').style.background = 'var(--warn)';
+  showLoginScreen();
+};
+
+// ── AUTO RECONNECT ────────────────────
+const savedCfg = localStorage.getItem('fbConfig');
+if (savedCfg) {
+  try {
+    const cfg = JSON.parse(savedCfg);
+    const app = initializeApp(cfg);
+    const db = getFirestore(app);
+    window.DB = db;
+    window.firebaseMode = true;
+    document.getElementById('firebase-setup').style.display = 'none';
+    await loadFromFirebase();
+    showLoginScreen();
+  } catch(e) {
+    // show setup
+  }
+}
+
+// ── LOAD DATA ─────────────────────────
+async function loadFromFirebase() {
+  try {
+    const [uSnap, pSnap] = await Promise.all([
+      getDocs(collection(window.DB, 'users')),
+      getDocs(collection(window.DB, 'playlists'))
+    ]);
+    window.state.users = uSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    window.state.playlists = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    window.state.channels = window.state.playlists.flatMap(p => (p.channels||[]).map(c => ({...c, playlistId: p.id, playlistName: p.name})));
+    updateBadges();
+  } catch(e) { console.warn('Firebase load error', e); }
+}
+
+function loadFromLocalStorage() {
+  try {
+    const s = localStorage.getItem('streamadmin');
+    if (s) { const p = JSON.parse(s); Object.assign(window.state, p); }
+  } catch(e) {}
+}
+
+function saveLocalStorage() {
+  try { localStorage.setItem('streamadmin', JSON.stringify(window.state)); } catch(e) {}
+}
+
+// ── SAVE TO FIREBASE ──────────────────
+window.saveToFirebase = async (collName, id, data) => {
+  if (!window.firebaseMode) return;
+  try { await setDoc(doc(window.DB, collName, String(id)), data); } catch(e) { console.warn(e); }
+};
+window.deleteFromFirebase = async (collName, id) => {
+  if (!window.firebaseMode) return;
+  try { await deleteDoc(doc(window.DB, collName, String(id))); } catch(e) { console.warn(e); }
+};
+
+// ── LOGIN ─────────────────────────────
+function showLoginScreen() {
+  document.getElementById('login-screen').classList.add('show');
+}
+
+window.doLogin = () => {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  const errEl = document.getElementById('login-error');
+
+  // Check admin default
+  if (user === 'admin' && pass === 'admin123') {
+    loginSuccess({ username:'admin', fullname:'Administrador', role:'admin' });
+    return;
+  }
+  // Check registered users
+  const found = window.state.users.find(u => u.username === user && u.password === pass && u.status === 'active');
+  if (found) { loginSuccess(found); return; }
+  errEl.style.display = 'block';
+  setTimeout(() => errEl.style.display = 'none', 3000);
+};
+
+function loginSuccess(user) {
+  window.state.currentUser = user;
+  document.getElementById('login-screen').classList.remove('show');
+  document.getElementById('app-sidebar').style.display = 'flex';
+  document.getElementById('app-main').style.display = 'flex';
+  document.getElementById('sb-avatar').textContent = user.fullname.charAt(0).toUpperCase();
+  document.getElementById('sb-name').textContent = user.fullname;
+  renderDashboard();
+  updateBadges();
+}
+
+window.doLogout = () => {
+  window.state.currentUser = null;
+  document.getElementById('app-sidebar').style.display = 'none';
+  document.getElementById('app-main').style.display = 'none';
+  document.getElementById('login-screen').classList.add('show');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+};
+
+// ── NAVIGATION ────────────────────────
+const panelTitles = { dashboard:'📊 Dashboard', listas:'📋 Listas M3U', canales:'📺 Canales', usuarios:'👥 Usuarios', permisos:'🔐 Permisos', importar:'⬆️ Importar M3U', ayuda:'❓ Guía M3U', github:'🐙 GitHub Pages' };
+const topbarActions = {
+  listas:'<button class="btn btn-primary btn-sm" onclick="showPanel(\'importar\')">⬆️ Importar Nueva</button>',
+  canales:'<button class="btn btn-secondary btn-sm" onclick="exportChannels()">⬇️ Exportar M3U</button>',
+  usuarios:'<button class="btn btn-primary btn-sm" onclick="openAddUser()">➕ Nuevo Usuario</button>'
+};
+
+window.showPanel = (id) => {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'"));
+  });
+  document.getElementById('page-title').textContent = panelTitles[id] || id;
+  document.getElementById('topbar-actions').innerHTML = topbarActions[id] || '';
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'listas') renderListas();
+  if (id === 'canales') renderChannels();
+  if (id === 'usuarios') renderUsers();
+  if (id === 'permisos') renderPermisos();
+};
+
+// ── PARSE M3U ─────────────────────────
+function parseM3U(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const channels = []; let i = lines[0]?.startsWith('#EXTM3U') ? 1 : 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('#EXTINF')) {
+      const url = lines[i+1] || '';
+      if (url && !url.startsWith('#')) {
+        const name = (line.match(/tvg-name="([^"]*)"/) || line.match(/,(.+)$/))?.[1]?.trim() || 'Sin nombre';
+        const group = line.match(/group-title="([^"]*)"/)?.[1] || 'General';
+        const logo = line.match(/tvg-logo="([^"]*)"/)?.[1] || '';
+        const g = group.toLowerCase(), u = url.toLowerCase();
+        let type = 'live';
+        if (g.includes('vod') || g.includes('pelíc') || g.includes('movie') || u.match(/\.mkv|\.mp4|\.avi/)) type = 'vod';
+        if (g.includes('serie') || name.match(/[Ss]\d+[Ee]\d+/)) type = 'series';
+        channels.push({ name, group, logo, url, type }); i += 2; continue;
+      }
+    }
+    i++;
+  }
+  return channels;
+}
+
+function getTypeLabel(type) {
+  if (type === 'vod') return '<span class="ch-type ch-vod">VOD</span>';
+  if (type === 'series') return '<span class="ch-type ch-series">SERIE</span>';
+  return '<span class="ch-type ch-live">EN VIVO</span>';
+}
+
+// ── IMPORT ────────────────────────────
+window.importFromPaste = () => {
+  const name = document.getElementById('paste-name').value.trim() || 'Lista ' + Date.now();
+  const content = document.getElementById('paste-content').value.trim();
+  if (!content || (!content.includes('#EXTM3U') && !content.includes('#EXTINF'))) { showToast('No parece un archivo M3U válido', 'error'); return; }
+  processM3U(name, content);
+};
+
+window.importFromUrl = () => {
+  const name = document.getElementById('url-name').value.trim() || 'Lista URL';
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { showToast('Ingresa una URL válida', 'error'); return; }
+  fetch(url).then(r => r.text()).then(text => processM3U(name, text)).catch(() => showToast('No se pudo cargar la URL (CORS)', 'error'));
+};
+
+async function processM3U(name, content) {
+  const channels = parseM3U(content);
+  if (channels.length === 0) { showToast('No se encontraron canales', 'error'); return; }
+  const id = 'pl_' + Date.now();
+  const playlist = {
+    id, name, content, channels,
+    date: new Date().toLocaleDateString('es-CL'),
+    stats: {
+      total: channels.length,
+      live: channels.filter(c => c.type==='live').length,
+      vod: channels.filter(c => c.type==='vod').length,
+      series: channels.filter(c => c.type==='series').length
+    }
+  };
+  window.state.playlists.push(playlist);
+  channels.forEach(ch => window.state.channels.push({...ch, playlistId:id, playlistName:name}));
+  if (window.firebaseMode) {
+    await window.saveToFirebase('playlists', id, { name, content, channels, date: playlist.date, stats: playlist.stats });
+  } else { saveLocalStorage(); }
+  updateBadges();
+  showToast(`✅ ${channels.length} canales importados`, 'success');
+  showPreview(channels);
+  document.getElementById('paste-content').value = '';
+  document.getElementById('paste-name').value = '';
+}
+
+function showPreview(channels) {
+  const div = document.getElementById('import-preview');
+  const slice = channels.slice(0, 50);
+  div.innerHTML = `<div style="padding:10px 16px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);">Mostrando ${slice.length} de ${channels.length}</div>
+    <div style="max-height:300px;overflow-y:auto;padding:10px 14px;">
+    ${slice.map((ch,i) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(30,45,69,0.4);font-size:11px;">
+      <span style="color:var(--muted);min-width:24px;font-size:10px;">${i+1}</span>
+      <span>${escHtml(ch.name)}</span>
+      <span style="margin-left:auto;">${getTypeLabel(ch.type)}</span>
+    </div>`).join('')}
+    </div>`;
+}
+
+// ── FILE DROP ─────────────────────────
+window.handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+window.handleDragLeave = (e) => e.currentTarget.classList.remove('drag-over');
+window.handleDrop = (e) => { e.preventDefault(); e.currentTarget.classList.remove('drag-over'); readFile(e.dataTransfer.files[0]); };
+window.handleFileInput = (e) => readFile(e.target.files[0]);
+function readFile(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (e) => processM3U(file.name.replace(/\.(m3u8?|txt)$/i,''), e.target.result);
+  r.readAsText(file);
+}
+
+// ── RENDER DASHBOARD ──────────────────
+window.renderDashboard = () => {
+  const vod = window.state.channels.filter(c => c.type==='vod'||c.type==='series').length;
+  const active = window.state.users.filter(u => u.status==='active').length;
+  document.getElementById('stat-canales').textContent = window.state.channels.length;
+  document.getElementById('stat-usuarios').textContent = active;
+  document.getElementById('stat-listas').textContent = window.state.playlists.length;
+  document.getElementById('stat-vod').textContent = vod;
+
+  const lastCh = document.getElementById('last-ch');
+  if (!window.state.channels.length) { lastCh.innerHTML = '<div class="empty-state" style="padding:20px;"><div class="empty-sub">Importa una lista M3U</div></div>'; }
+  else {
+    const sl = window.state.channels.slice(-6).reverse();
+    lastCh.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Canal</th><th>Tipo</th><th>Lista</th></tr></thead><tbody>${sl.map(ch=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td>${escHtml(ch.name)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td></tr>`).join('')}</tbody></table>`;
+  }
+  const lastUs = document.getElementById('last-us');
+  if (!window.state.users.length) { lastUs.innerHTML = '<div class="empty-state" style="padding:20px;"><div class="empty-sub">Agrega usuarios</div></div>'; }
+  else {
+    const sl = window.state.users.slice(-5).reverse();
+    lastUs.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead><tbody>${sl.map(u=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td>${escHtml(u.fullname)}</td><td>${u.role==='admin'?'<span class="status-badge status-admin">👑 Admin</span>':'<span style="color:var(--muted);font-size:10px;">👁️</span>'}</td><td>${u.status==='active'?'<span class="status-badge status-active"><span class="dot-s"></span>Activo</span>':'<span class="status-badge status-inactive">Inactivo</span>'}</td></tr>`).join('')}</tbody></table>`;
+  }
+};
+
+// ── RENDER LISTAS ─────────────────────
+window.renderListas = () => {
+  const c = document.getElementById('listas-container');
+  if (!window.state.playlists.length) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin listas M3U</div><div class="empty-sub">Importa tu primera lista</div><br><button class="btn btn-primary" onclick="showPanel('importar')">⬆️ Importar</button></div>`; return; }
+  c.innerHTML = window.state.playlists.map(pl => `
+    <div class="playlist-item">
+      <div style="font-size:24px;">📋</div>
+      <div class="playlist-info">
+        <div class="playlist-name">${escHtml(pl.name)}</div>
+        <div class="playlist-meta">Importada el ${pl.date}</div>
+        <div class="playlist-stats">
+          <div class="playlist-stat"><span>${pl.stats.total}</span> total</div>
+          <div class="playlist-stat"><span>${pl.stats.live}</span> en vivo</div>
+          <div class="playlist-stat"><span>${pl.stats.vod}</span> VOD</div>
+          <div class="playlist-stat"><span>${pl.stats.series}</span> series</div>
+        </div>
+      </div>
+      <div class="inline-actions">
+        <button class="btn btn-secondary btn-sm" onclick="downloadPlaylist('${pl.id}')">⬇️ Exportar</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePlaylist('${pl.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+};
+
+window.downloadPlaylist = (id) => {
+  const pl = window.state.playlists.find(p => p.id===id);
+  if (!pl) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([pl.content], {type:'text/plain'}));
+  a.download = pl.name + '.m3u'; a.click();
+  showToast('Lista exportada', 'success');
+};
+
+window.deletePlaylist = async (id) => {
+  if (!confirm('¿Eliminar esta lista y sus canales?')) return;
+  window.state.playlists = window.state.playlists.filter(p => p.id!==id);
+  window.state.channels = window.state.channels.filter(c => c.playlistId!==id);
+  if (window.firebaseMode) await window.deleteFromFirebase('playlists', id);
+  else saveLocalStorage();
+  updateBadges(); renderListas(); showToast('Lista eliminada', 'info');
+};
+
+// ── RENDER CHANNELS ───────────────────
+window.filterChannels = (val) => { window.channelFilter = val.toLowerCase(); renderChannels(); };
+window.renderChannels = () => {
+  const live = window.state.channels.filter(c=>c.type==='live').length;
+  const vod = window.state.channels.filter(c=>c.type==='vod').length;
+  const series = window.state.channels.filter(c=>c.type==='series').length;
+  document.getElementById('count-live').textContent = live+' EN VIVO';
+  document.getElementById('count-vod').textContent = vod+' VOD';
+  document.getElementById('count-series').textContent = series+' SERIES';
+  const div = document.getElementById('channels-table');
+  const filtered = window.channelFilter ? window.state.channels.filter(c=>c.name.toLowerCase().includes(window.channelFilter)||c.group.toLowerCase().includes(window.channelFilter)) : window.state.channels;
+  if (!filtered.length) { div.innerHTML = `<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">${!window.state.channels.length?'Sin canales aún':'Sin resultados'}</div></div>`; return; }
+  div.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>#</th><th>Nombre</th><th>Grupo</th><th>Tipo</th><th>Lista</th><th>URL</th></tr></thead><tbody>${filtered.slice(0,200).map((ch,i)=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><td style="color:var(--muted);">${i+1}</td><td>${escHtml(ch.name)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.group)}</td><td>${getTypeLabel(ch.type)}</td><td style="color:var(--muted);font-size:10px;">${escHtml(ch.playlistName)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-size:10px;" title="${escHtml(ch.url)}">${escHtml(ch.url)}</td></tr>`).join('')}</tbody></table>${filtered.length>200?`<div style="padding:10px 16px;font-size:10px;color:var(--muted);">Mostrando 200 de ${filtered.length}</div>`:''}`;
+};
+
+window.exportChannels = () => {
+  if (!window.state.channels.length) { showToast('No hay canales', 'error'); return; }
+  let m3u = '#EXTM3U\n';
+  window.state.channels.forEach(ch => m3u += `#EXTINF:-1 tvg-name="${ch.name}" group-title="${ch.group}",${ch.name}\n${ch.url}\n`);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([m3u], {type:'text/plain'}));
+  a.download = 'todos-los-canales.m3u'; a.click();
+  showToast('Canales exportados', 'success');
+};
+
+// ── USERS ─────────────────────────────
+window.openAddUser = () => {
+  document.getElementById('modal-user-title').textContent = '➕ Nuevo Usuario';
+  ['edit-user-id','user-fullname','user-username','user-password','user-email','user-notes'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('user-role').value = 'viewer';
+  document.getElementById('user-status').value = 'active';
+  renderUserListCheckboxes([]);
+  document.getElementById('modal-user').classList.add('open');
+};
+
+window.openEditUser = (id) => {
+  const u = window.state.users.find(u=>u.id===id); if (!u) return;
+  document.getElementById('modal-user-title').textContent = '✏️ Editar Usuario';
+  document.getElementById('edit-user-id').value = id;
+  document.getElementById('user-fullname').value = u.fullname;
+  document.getElementById('user-username').value = u.username;
+  document.getElementById('user-password').value = '';
+  document.getElementById('user-role').value = u.role;
+  document.getElementById('user-status').value = u.status;
+  document.getElementById('user-email').value = u.email||'';
+  document.getElementById('user-notes').value = u.notes||'';
+  renderUserListCheckboxes(u.allowedLists||[]);
+  document.getElementById('modal-user').classList.add('open');
+};
+
+function renderUserListCheckboxes(allowed) {
+  const div = document.getElementById('user-lists-checkboxes');
+  if (!window.state.playlists.length) { div.innerHTML = '<span style="font-size:11px;color:var(--muted);">No hay listas importadas</span>'; return; }
+  div.innerHTML = window.state.playlists.map(pl => `<label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;font-size:11px;color:var(--text);text-transform:none;letter-spacing:0;"><input type="checkbox" value="${pl.id}" ${allowed.includes(pl.id)?'checked':''} style="width:auto;border:none;padding:0;accent-color:var(--accent);" />${escHtml(pl.name)} <span style="color:var(--muted);">(${pl.stats.total} canales)</span></label>`).join('');
+}
+
+window.saveUser = async () => {
+  const fullname = document.getElementById('user-fullname').value.trim();
+  const username = document.getElementById('user-username').value.trim();
+  if (!fullname||!username) { showToast('Nombre y usuario son obligatorios', 'error'); return; }
+  const allowedLists = Array.from(document.querySelectorAll('#user-lists-checkboxes input:checked')).map(cb => cb.value);
+  const editId = document.getElementById('edit-user-id').value;
+  const pw = document.getElementById('user-password').value;
+
+  if (editId) {
+    const u = window.state.users.find(u=>u.id===editId);
+    if (u) {
+      Object.assign(u, { fullname, username, role:document.getElementById('user-role').value, status:document.getElementById('user-status').value, email:document.getElementById('user-email').value, notes:document.getElementById('user-notes').value, allowedLists });
+      if (pw) u.password = pw;
+      if (window.firebaseMode) await window.saveToFirebase('users', editId, u);
+      showToast('Usuario actualizado', 'success');
+    }
+  } else {
+    const newUser = { id:'u_'+Date.now(), fullname, username, password:pw, role:document.getElementById('user-role').value, status:document.getElementById('user-status').value, email:document.getElementById('user-email').value, notes:document.getElementById('user-notes').value, allowedLists, createdAt:new Date().toLocaleDateString('es-CL') };
+    window.state.users.push(newUser);
+    if (window.firebaseMode) await window.saveToFirebase('users', newUser.id, newUser);
+    showToast('Usuario creado', 'success');
+  }
+  if (!window.firebaseMode) saveLocalStorage();
+  updateBadges(); closeModal('modal-user'); renderUsers(); renderDashboard();
+};
+
+window.deleteUser = async (id) => {
+  if (!confirm('¿Eliminar este usuario?')) return;
+  window.state.users = window.state.users.filter(u=>u.id!==id);
+  if (window.firebaseMode) await window.deleteFromFirebase('users', id);
+  else saveLocalStorage();
+  updateBadges(); renderUsers(); showToast('Usuario eliminado', 'info');
+};
+
+window.toggleUserStatus = async (id) => {
+  const u = window.state.users.find(u=>u.id===id); if (!u) return;
+  u.status = u.status==='active'?'inactive':'active';
+  if (window.firebaseMode) await window.saveToFirebase('users', id, u);
+  else saveLocalStorage();
+  renderUsers(); renderDashboard();
+  showToast(`Usuario ${u.status==='active'?'activado':'desactivado'}`, 'info');
+};
+
+window.renderUsers = () => {
+  const div = document.getElementById('users-table');
+  if (!window.state.users.length) { div.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Sin usuarios</div><br><button class="btn btn-primary" onclick="openAddUser()">➕ Añadir</button></div>`; return; }
+  div.innerHTML = `<table><thead><tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;"><th>Usuario</th><th>Alias</th><th>Rol</th><th>Listas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${window.state.users.map(u=>`<tr onclick="playChannel(\'${ch.url}\')" style="cursor:pointer;">
+    <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:26px;height:26px;font-size:10px;">${u.fullname.charAt(0).toUpperCase()}</div><div><div style="font-size:11px;">${escHtml(u.fullname)}</div>${u.email?`<div style="font-size:9px;color:var(--muted);">${escHtml(u.email)}</div>`:''}</div></div></td>
+    <td style="color:var(--muted);font-size:10px;">@${escHtml(u.username)}</td>
+    <td>${u.role==='admin'?'<span class="status-badge status-admin">👑 Admin</span>':'<span style="color:var(--muted);font-size:10px;">👁️ Viewer</span>'}</td>
+    <td style="font-size:10px;color:var(--muted);">${(u.allowedLists||[]).length}</td>
+    <td><button onclick="toggleUserStatus('${u.id}')" style="background:none;border:none;cursor:pointer;padding:0;">${u.status==='active'?'<span class="status-badge status-active"><span class="dot-s"></span>Activo</span>':'<span class="status-badge status-inactive"><span class="dot-s"></span>Inactivo</span>'}</button></td>
+    <td><div class="inline-actions"><button class="btn btn-secondary btn-sm" onclick="openEditUser('${u.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+};
+
+// ── PERMISOS ──────────────────────────
+window.renderPermisos = () => {
+  const div = document.getElementById('permisos-container');
+  if (!window.state.users.length||!window.state.playlists.length) { div.innerHTML = `<div class="empty-state"><div class="empty-icon">🔐</div><div class="empty-title">Necesitas usuarios y listas</div></div>`; return; }
+  div.innerHTML = window.state.users.map(u => `<div class="card" style="margin-bottom:14px;">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:28px;height:28px;font-size:11px;">${u.fullname.charAt(0).toUpperCase()}</div><div><div>${escHtml(u.fullname)}</div><div style="font-size:9px;color:var(--muted);">@${escHtml(u.username)}</div></div></div>
+      ${u.role==='admin'?'<span class="tag tag-purple">Acceso Total</span>':''}
+    </div>
+    <div class="card-body">${u.role==='admin'?'<div style="font-size:11px;color:var(--muted);">Los administradores tienen acceso a todo.</div>':`<div style="display:flex;flex-wrap:wrap;gap:10px;">${window.state.playlists.map(pl=>{const has=(u.allowedLists||[]).includes(pl.id);return`<label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;background:var(--surface2);padding:8px 12px;border-radius:6px;border:1px solid ${has?'var(--accent3)':'var(--border)'};color:${has?'var(--accent3)':'var(--muted)'};text-transform:none;letter-spacing:0;"><input type="checkbox" ${has?'checked':''} style="width:auto;border:none;padding:0;accent-color:var(--accent3);" onchange="togglePerm('${u.id}','${pl.id}',this.checked)" />${escHtml(pl.name)}</label>`}).join('')}</div>`}</div>
+  </div>`).join('');
+};
+
+window.togglePerm = async (userId, listId, checked) => {
+  const u = window.state.users.find(u=>u.id===userId); if (!u) return;
+  if (!u.allowedLists) u.allowedLists=[];
+  if (checked) { if (!u.allowedLists.includes(listId)) u.allowedLists.push(listId); }
+  else u.allowedLists = u.allowedLists.filter(l=>l!==listId);
+  if (window.firebaseMode) await window.saveToFirebase('users', userId, u);
+  else saveLocalStorage();
+  showToast('Permiso actualizado', 'success');
+};
+
+// ── GITHUB DOWNLOAD ───────────────────
+window.downloadForGithub = () => {
+  const html = document.documentElement.outerHTML;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+  a.download = 'index.html'; a.click();
+  showToast('Descargado como index.html — listo para GitHub', 'success');
+};
+
+// ── UTILS ─────────────────────────────
+function updateBadges() {
+  document.getElementById('badge-listas').textContent = window.state.playlists.length;
+  document.getElementById('badge-canales').textContent = window.state.channels.length;
+  document.getElementById('badge-usuarios').textContent = window.state.users.length;
+}
+
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+window.showToast = (msg, type='info') => {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${{success:'✅',error:'❌',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s;'; setTimeout(()=>t.remove(),300); }, 3000);
+};
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+function playChannel(url){
+  const video = document.getElementById('videoPlayer');
+  let streamUrl = url.replace('/live/','/hls/').replace('.ts','.m3u8');
+
+  if(window.Hls && Hls.isSupported()){
+    if(window.hls) window.hls.destroy();
+    const hls = new Hls();
+    window.hls = hls;
+    hls.loadSource(streamUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play());
+  }else{
+    video.src = streamUrl;
+    video.play();
+  }
+}
+</script>
+
+</body>
+</html>
